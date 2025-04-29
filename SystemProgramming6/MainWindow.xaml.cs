@@ -16,7 +16,7 @@ namespace SystemProgramming6;
 /// </summary>
 public partial class MainWindow : Window
 {
-    static Mutex mutex = new Mutex(true, "{8F6F0AC4-B9A1-45fd-A8CF-72F04E6BDE8F}");
+    static Mutex mutex = new Mutex(true, "MutexUniqueTest");
 
     public MainWindow()
     {
