@@ -6,7 +6,22 @@
         xmlns:local="clr-namespace:SystemProgramming6"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" Text="Start working with mutex" FontWeight="Bold" Margin="0,0,0,10"/>
+        
+        
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
+            <Button x:Name="GenerateButton" 
+                    Content="Start Generating"
+                    Padding="20,5" 
+                    Click="Start_Click"/>
+        </StackPanel>
+        
+        <TextBlock Grid.Row="3" x:Name="MaxValueText" FontSize="16" FontWeight="Bold" Margin="0,10" HorizontalAlignment="Center"/>
     </Grid>
 </Window>
