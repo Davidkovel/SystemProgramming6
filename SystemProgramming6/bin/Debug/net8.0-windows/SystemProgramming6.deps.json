@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "SystemProgramming6/1.0.0": {
+        "runtime": {
+          "SystemProgramming6.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SystemProgramming6/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,210 @@
+Index: SystemProgramming6/MainWindow.xaml.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>using System.Text;\r\nusing System.Windows;\r\nusing System.Windows.Controls;\r\nusing System.Windows.Data;\r\nusing System.Windows.Documents;\r\nusing System.Windows.Input;\r\nusing System.Windows.Media;\r\nusing System.Windows.Media.Imaging;\r\nusing System.Windows.Navigation;\r\nusing System.Windows.Shapes;\r\n\r\nnamespace SystemProgramming6;\r\n\r\n/// <summary>\r\n/// Interaction logic for MainWindow.xaml\r\n/// </summary>\r\npublic partial class MainWindow : Window\r\n{\r\n    private Mutex arrayMutex = new Mutex();\r\n    private int[] dataArray = new int[10];\r\n    private Random random = new Random();\r\n\r\n    public MainWindow()\r\n    {\r\n        InitializeComponent();\r\n        GenerateNewArray(); \r\n        DisplayArray();\r\n    }\r\n\r\n    private void GenerateNewArray()\r\n    {\r\n        for (int i = 0; i < dataArray.Length; i++)\r\n        {\r\n            dataArray[i] = random.Next(1, 100);\r\n        }\r\n    }\r\n\r\n    private void DisplayArray()\r\n    {\r\n        OutputTextBox.Text = \"Current Array:\\n\";\r\n        OutputTextBox.AppendText(string.Join(\", \", dataArray) + \"\\n\\n\");\r\n    }\r\n\r\n    private void GenerateButton_Click(object sender, RoutedEventArgs e)\r\n    {\r\n        GenerateNewArray();\r\n        DisplayArray();\r\n        MaxValueText.Text = \"\";\r\n    }\r\n\r\n    private async void StartButton_Click(object sender, RoutedEventArgs e)\r\n    {\r\n        StartButton.IsEnabled = false;\r\n        GenerateButton.IsEnabled = false;\r\n        MaxValueText.Text = \"\";\r\n        OutputTextBox.AppendText(\"--- Starting calculating ---\\n\");\r\n\r\n        Thread modifierThread = new Thread(() =>\r\n        {\r\n            arrayMutex.WaitOne();\r\n\r\n            int increment = random.Next(1, 20);\r\n            Dispatcher.Invoke(() => OutputTextBox.AppendText($\"\\nThread 1: Adding new element{increment}\\n\"));\r\n\r\n            for (int i = 0; i < dataArray.Length; i++)\r\n            {\r\n                dataArray[i] += increment;\r\n                Dispatcher.Invoke(() =>\r\n                {\r\n                    OutputTextBox.AppendText($\"Thread 1: Element {i} = {dataArray[i]}\\n\");\r\n                    OutputTextBox.ScrollToEnd();\r\n                });\r\n                Thread.Sleep(300);\r\n            }\r\n\r\n            Dispatcher.Invoke(() => OutputTextBox.AppendText(\"\\nThread 1: Array after modification:\\n\" +\r\n                                                             string.Join(\", \", dataArray) + \"\\n\\n\"));\r\n\r\n            arrayMutex.ReleaseMutex();\r\n        });\r\n\r\n        Thread maxFinderThread = new Thread(() =>\r\n        {\r\n            \r\n            arrayMutex.WaitOne();\r\n\r\n            int max = dataArray.Max();\r\n            Dispatcher.Invoke(() =>\r\n            {\r\n                OutputTextBox.AppendText($\"Thread 2: Maximum Array number = {max}\\n\");\r\n                MaxValueText.Text = $\"Maximum Array number: {max}\";\r\n                OutputTextBox.ScrollToEnd();\r\n            });\r\n\r\n            arrayMutex.ReleaseMutex();\r\n\r\n            Dispatcher.Invoke(() =>\r\n            {\r\n                StartButton.IsEnabled = true;\r\n                GenerateButton.IsEnabled = true;\r\n            });\r\n        });\r\n\r\n        modifierThread.Start();\r\n        maxFinderThread.Start();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/SystemProgramming6/MainWindow.xaml.cs b/SystemProgramming6/MainWindow.xaml.cs
+--- a/SystemProgramming6/MainWindow.xaml.cs	(revision c27cf3424518a6f52a8f12ac9a24548c8ccc941b)
++++ b/SystemProgramming6/MainWindow.xaml.cs	(date 1745946014136)
+@@ -23,7 +23,7 @@
+     public MainWindow()
+     {
+         InitializeComponent();
+-        GenerateNewArray(); 
++        GenerateNewArray();
+         DisplayArray();
+     }
+ 
+@@ -37,7 +37,7 @@
+ 
+     private void DisplayArray()
+     {
+-        OutputTextBox.Text = "Current Array:\n";
++        OutputTextBox.Text = "Поточний масив:\n";
+         OutputTextBox.AppendText(string.Join(", ", dataArray) + "\n\n");
+     }
+ 
+@@ -48,52 +48,54 @@
+         MaxValueText.Text = "";
+     }
+ 
+-    private async void StartButton_Click(object sender, RoutedEventArgs e)
++    private void StartButton_Click(object sender, RoutedEventArgs e)
+     {
+         StartButton.IsEnabled = false;
+         GenerateButton.IsEnabled = false;
+         MaxValueText.Text = "";
+-        OutputTextBox.AppendText("--- Starting calculating ---\n");
++        OutputTextBox.AppendText("--- Початок обробки ---\n");
+ 
++        // Потік для модифікації масиву
+         Thread modifierThread = new Thread(() =>
+         {
+-            arrayMutex.WaitOne();
++            arrayMutex.WaitOne(); // Захоплюємо м'ютекс
+ 
+             int increment = random.Next(1, 20);
+-            Dispatcher.Invoke(() => OutputTextBox.AppendText($"\nThread 1: Adding new element{increment}\n"));
++            Dispatcher.Invoke(() => OutputTextBox.AppendText($"\nПотік 1: Додаємо до кожного елемента {increment}\n"));
+ 
+             for (int i = 0; i < dataArray.Length; i++)
+             {
+                 dataArray[i] += increment;
+                 Dispatcher.Invoke(() =>
+                 {
+-                    OutputTextBox.AppendText($"Thread 1: Element {i} = {dataArray[i]}\n");
++                    OutputTextBox.AppendText($"Потік 1: Елемент {i} = {dataArray[i]}\n");
+                     OutputTextBox.ScrollToEnd();
+                 });
+-                Thread.Sleep(300);
++                Thread.Sleep(300); // Затримка для наочності
+             }
+ 
+-            Dispatcher.Invoke(() => OutputTextBox.AppendText("\nThread 1: Array after modification:\n" +
++            Dispatcher.Invoke(() => OutputTextBox.AppendText("\nПотік 1: Масив після модифікації:\n" +
+                                                              string.Join(", ", dataArray) + "\n\n"));
+ 
+-            arrayMutex.ReleaseMutex();
++            arrayMutex.ReleaseMutex(); // Звільняємо м'ютекс
+         });
+ 
++        // Потік для знаходження максимального значення
+         Thread maxFinderThread = new Thread(() =>
+         {
+-            
+-            arrayMutex.WaitOne();
++            arrayMutex.WaitOne(); // Чекаємо, поки модифікація завершиться
+ 
+             int max = dataArray.Max();
+             Dispatcher.Invoke(() =>
+             {
+-                OutputTextBox.AppendText($"Thread 2: Maximum Array number = {max}\n");
+-                MaxValueText.Text = $"Maximum Array number: {max}";
++                OutputTextBox.AppendText($"Потік 2: Максимальне значення в масиві = {max}\n");
++                MaxValueText.Text = $"Максимальне значення: {max}";
+                 OutputTextBox.ScrollToEnd();
+             });
+ 
+-            arrayMutex.ReleaseMutex();
++            arrayMutex.ReleaseMutex(); // Звільняємо м'ютекс
+ 
++            // Повертаємо кнопки у вихідний стан
+             Dispatcher.Invoke(() =>
+             {
+                 StartButton.IsEnabled = true;
+Index: SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6_MarkupCompile.lref
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6_MarkupCompile.lref b/SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6_MarkupCompile.lref
+deleted file mode 100644
+--- a/SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6_MarkupCompile.lref	(revision c27cf3424518a6f52a8f12ac9a24548c8ccc941b)
++++ /dev/null	(revision c27cf3424518a6f52a8f12ac9a24548c8ccc941b)
+@@ -1,4 +0,0 @@
+-
+-
+-FC:\Users\David\RiderProjects\SystemProgramming6\SystemProgramming6\MainWindow.xaml;;
+-
+Index: SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6.AssemblyInfo.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>//------------------------------------------------------------------------------\r\n// <auto-generated>\r\n//     This code was generated by a tool.\r\n//\r\n//     Changes to this file may cause incorrect behavior and will be lost if\r\n//     the code is regenerated.\r\n// </auto-generated>\r\n//------------------------------------------------------------------------------\r\n\r\nusing System;\r\nusing System.Reflection;\r\n\r\n[assembly: System.Reflection.AssemblyCompanyAttribute(\"SystemProgramming6\")]\r\n[assembly: System.Reflection.AssemblyConfigurationAttribute(\"Debug\")]\r\n[assembly: System.Reflection.AssemblyFileVersionAttribute(\"1.0.0.0\")]\r\n[assembly: System.Reflection.AssemblyInformationalVersionAttribute(\"1.0.0+6cf080574f4008d7de24f7674bc8beaded505aef\")]\r\n[assembly: System.Reflection.AssemblyProductAttribute(\"SystemProgramming6\")]\r\n[assembly: System.Reflection.AssemblyTitleAttribute(\"SystemProgramming6\")]\r\n[assembly: System.Reflection.AssemblyVersionAttribute(\"1.0.0.0\")]\r\n[assembly: System.Runtime.Versioning.TargetPlatformAttribute(\"Windows7.0\")]\r\n[assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute(\"Windows7.0\")]\r\n\r\n// Создано классом WriteCodeFragment MSBuild.\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6.AssemblyInfo.cs b/SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6.AssemblyInfo.cs
+--- a/SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6.AssemblyInfo.cs	(revision c27cf3424518a6f52a8f12ac9a24548c8ccc941b)
++++ b/SystemProgramming6/obj/Debug/net8.0-windows/SystemProgramming6.AssemblyInfo.cs	(date 1745945956506)
+@@ -13,7 +13,7 @@
+ [assembly: System.Reflection.AssemblyCompanyAttribute("SystemProgramming6")]
+ [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+ [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6cf080574f4008d7de24f7674bc8beaded505aef")]
++[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c27cf3424518a6f52a8f12ac9a24548c8ccc941b")]
+ [assembly: System.Reflection.AssemblyProductAttribute("SystemProgramming6")]
+ [assembly: System.Reflection.AssemblyTitleAttribute("SystemProgramming6")]
+ [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+Index: SystemProgramming6/obj/Debug/net8.0-windows/MainWindow.g.cs
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>#pragma checksum \"..\\..\\..\\MainWindow.xaml\" \"{ff1816ec-aa5e-4d10-87f7-6f4963833460}\" \"CE4C0CA7BD0B4AECF9F36F62A9A2622568E2C2D0\"\r\n//------------------------------------------------------------------------------\r\n// <auto-generated>\r\n//     This code was generated by a tool.\r\n//\r\n//     Changes to this file may cause incorrect behavior and will be lost if\r\n//     the code is regenerated.\r\n// </auto-generated>\r\n//------------------------------------------------------------------------------\r\n\r\nusing System;\r\nusing System.Diagnostics;\r\nusing System.Windows;\r\nusing System.Windows.Automation;\r\nusing System.Windows.Controls;\r\nusing System.Windows.Controls.Primitives;\r\nusing System.Windows.Controls.Ribbon;\r\nusing System.Windows.Data;\r\nusing System.Windows.Documents;\r\nusing System.Windows.Ink;\r\nusing System.Windows.Input;\r\nusing System.Windows.Markup;\r\nusing System.Windows.Media;\r\nusing System.Windows.Media.Animation;\r\nusing System.Windows.Media.Effects;\r\nusing System.Windows.Media.Imaging;\r\nusing System.Windows.Media.Media3D;\r\nusing System.Windows.Media.TextFormatting;\r\nusing System.Windows.Navigation;\r\nusing System.Windows.Shapes;\r\nusing System.Windows.Shell;\r\nusing SystemProgramming6;\r\n\r\n\r\nnamespace SystemProgramming6 {\r\n    \r\n    \r\n    /// <summary>\r\n    /// MainWindow\r\n    /// </summary>\r\n    public partial class MainWindow : System.Windows.Window, System.Windows.Markup.IComponentConnector {\r\n        \r\n        \r\n        #line 20 \"..\\..\\..\\MainWindow.xaml\"\r\n        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"Microsoft.Performance\", \"CA1823:AvoidUnusedPrivateFields\")]\r\n        internal System.Windows.Controls.TextBox OutputTextBox;\r\n        \r\n        #line default\r\n        #line hidden\r\n        \r\n        \r\n        #line 29 \"..\\..\\..\\MainWindow.xaml\"\r\n        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"Microsoft.Performance\", \"CA1823:AvoidUnusedPrivateFields\")]\r\n        internal System.Windows.Controls.Button StartButton;\r\n        \r\n        #line default\r\n        #line hidden\r\n        \r\n        \r\n        #line 34 \"..\\..\\..\\MainWindow.xaml\"\r\n        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"Microsoft.Performance\", \"CA1823:AvoidUnusedPrivateFields\")]\r\n        internal System.Windows.Controls.Button GenerateButton;\r\n        \r\n        #line default\r\n        #line hidden\r\n        \r\n        \r\n        #line 40 \"..\\..\\..\\MainWindow.xaml\"\r\n        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"Microsoft.Performance\", \"CA1823:AvoidUnusedPrivateFields\")]\r\n        internal System.Windows.Controls.TextBlock MaxValueText;\r\n        \r\n        #line default\r\n        #line hidden\r\n        \r\n        private bool _contentLoaded;\r\n        \r\n        /// <summary>\r\n        /// InitializeComponent\r\n        /// </summary>\r\n        [System.Diagnostics.DebuggerNonUserCodeAttribute()]\r\n        [System.CodeDom.Compiler.GeneratedCodeAttribute(\"PresentationBuildTasks\", \"8.0.13.0\")]\r\n        public void InitializeComponent() {\r\n            if (_contentLoaded) {\r\n                return;\r\n            }\r\n            _contentLoaded = true;\r\n            System.Uri resourceLocater = new System.Uri(\"/SystemProgramming6;component/mainwindow.xaml\", System.UriKind.Relative);\r\n            \r\n            #line 1 \"..\\..\\..\\MainWindow.xaml\"\r\n            System.Windows.Application.LoadComponent(this, resourceLocater);\r\n            \r\n            #line default\r\n            #line hidden\r\n        }\r\n        \r\n        [System.Diagnostics.DebuggerNonUserCodeAttribute()]\r\n        [System.CodeDom.Compiler.GeneratedCodeAttribute(\"PresentationBuildTasks\", \"8.0.13.0\")]\r\n        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]\r\n        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"Microsoft.Design\", \"CA1033:InterfaceMethodsShouldBeCallableByChildTypes\")]\r\n        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"Microsoft.Maintainability\", \"CA1502:AvoidExcessiveComplexity\")]\r\n        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(\"Microsoft.Performance\", \"CA1800:DoNotCastUnnecessarily\")]\r\n        void System.Windows.Markup.IComponentConnector.Connect(int connectionId, object target) {\r\n            switch (connectionId)\r\n            {\r\n            case 1:\r\n            this.OutputTextBox = ((System.Windows.Controls.TextBox)(target));\r\n            return;\r\n            case 2:\r\n            this.StartButton = ((System.Windows.Controls.Button)(target));\r\n            \r\n            #line 33 \"..\\..\\..\\MainWindow.xaml\"\r\n            this.StartButton.Click += new System.Windows.RoutedEventHandler(this.StartButton_Click);\r\n            \r\n            #line default\r\n            #line hidden\r\n            return;\r\n            case 3:\r\n            this.GenerateButton = ((System.Windows.Controls.Button)(target));\r\n            \r\n            #line 37 \"..\\..\\..\\MainWindow.xaml\"\r\n            this.GenerateButton.Click += new System.Windows.RoutedEventHandler(this.GenerateButton_Click);\r\n            \r\n            #line default\r\n            #line hidden\r\n            return;\r\n            case 4:\r\n            this.MaxValueText = ((System.Windows.Controls.TextBlock)(target));\r\n            return;\r\n            }\r\n            this._contentLoaded = true;\r\n        }\r\n    }\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/SystemProgramming6/obj/Debug/net8.0-windows/MainWindow.g.cs b/SystemProgramming6/obj/Debug/net8.0-windows/MainWindow.g.cs
+--- a/SystemProgramming6/obj/Debug/net8.0-windows/MainWindow.g.cs	(revision c27cf3424518a6f52a8f12ac9a24548c8ccc941b)
++++ b/SystemProgramming6/obj/Debug/net8.0-windows/MainWindow.g.cs	(date 1745945955868)
+@@ -1,4 +1,4 @@
+-#pragma checksum "..\..\..\MainWindow.xaml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "CE4C0CA7BD0B4AECF9F36F62A9A2622568E2C2D0"
++#pragma checksum "..\..\..\MainWindow.xaml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "414CC81C98B165F811F786DB33ADF3C9F5298B91"
+ //------------------------------------------------------------------------------
+ // <auto-generated>
+ //     This code was generated by a tool.
+@@ -41,23 +41,7 @@
+     public partial class MainWindow : System.Windows.Window, System.Windows.Markup.IComponentConnector {
+         
+         
+-        #line 20 "..\..\..\MainWindow.xaml"
+-        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
+-        internal System.Windows.Controls.TextBox OutputTextBox;
+-        
+-        #line default
+-        #line hidden
+-        
+-        
+-        #line 29 "..\..\..\MainWindow.xaml"
+-        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
+-        internal System.Windows.Controls.Button StartButton;
+-        
+-        #line default
+-        #line hidden
+-        
+-        
+-        #line 34 "..\..\..\MainWindow.xaml"
++        #line 19 "..\..\..\MainWindow.xaml"
+         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
+         internal System.Windows.Controls.Button GenerateButton;
+         
+@@ -65,7 +49,7 @@
+         #line hidden
+         
+         
+-        #line 40 "..\..\..\MainWindow.xaml"
++        #line 25 "..\..\..\MainWindow.xaml"
+         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
+         internal System.Windows.Controls.TextBlock MaxValueText;
+         
+@@ -103,27 +87,15 @@
+             switch (connectionId)
+             {
+             case 1:
+-            this.OutputTextBox = ((System.Windows.Controls.TextBox)(target));
+-            return;
+-            case 2:
+-            this.StartButton = ((System.Windows.Controls.Button)(target));
+-            
+-            #line 33 "..\..\..\MainWindow.xaml"
+-            this.StartButton.Click += new System.Windows.RoutedEventHandler(this.StartButton_Click);
+-            
+-            #line default
+-            #line hidden
+-            return;
+-            case 3:
+             this.GenerateButton = ((System.Windows.Controls.Button)(target));
+             
+-            #line 37 "..\..\..\MainWindow.xaml"
+-            this.GenerateButton.Click += new System.Windows.RoutedEventHandler(this.GenerateButton_Click);
++            #line 22 "..\..\..\MainWindow.xaml"
++            this.GenerateButton.Click += new System.Windows.RoutedEventHandler(this.Start_Click);
+             
+             #line default
+             #line hidden
+             return;
+-            case 4:
++            case 2:
+             this.MaxValueText = ((System.Windows.Controls.TextBlock)(target));
+             return;
+             }
